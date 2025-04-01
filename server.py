@@ -9,6 +9,7 @@ users = {
 clients = {}
 
 async def handle_client(websocket, path):
+    username = None
     try:
         await websocket.send("Username: ")
         username = await websocket.recv()
@@ -28,11 +29,11 @@ async def handle_client(websocket, path):
         async for message in websocket:
             await broadcast(f"[{username}]: {message}", username)
 
-    except:
+    except websockets.exceptions.ConnectionClosed:
         pass
 
     finally:
-        if username in clients:
+        if username and username in clients:
             del clients[username]
         await broadcast(f"{username} has left the chat.", username)
 
@@ -42,13 +43,16 @@ async def broadcast(message, sender=None):
         if user != sender:
             try:
                 await ws.send(message)
-            except:
+            except websockets.exceptions.ConnectionClosed:
                 disconnected_clients.append(user)
 
     for user in disconnected_clients:
         del clients[user]
 
-start_server = websockets.serve(handle_client, "0.0.0.0", 8765)
+async def main():
+    server = await websockets.serve(handle_client, "0.0.0.0", 8765)
+    await server.wait_closed()
 
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+loop.run_forever()
