@@ -50,6 +50,7 @@ async def broadcast(message):
         except websockets.exceptions.ConnectionClosed:
             pass
 
+# Modify the main function to accept 'path' as a parameter
 async def main(websocket, path):
     user_id = await authenticate(websocket)
     if user_id:
