@@ -1,0 +1,47 @@
+Creating a web app to use linkedin API
+	web app will recieve authcode from api and store it
+	web app will request for access code by sending auth code to api
+
+Q Linkedin API
+
+            "@context": "https://schema.org/",
+            "@id": "https://www.stemstartup.com/testHome.html",
+            "@type": "Course",
+            "name": "Learn Advanced C++ Topics",
+            "description": "Improve your C++ skills by learning advanced topics.",                  "courseCode": "F300",
+            "educationalLevel": "Beginner",
+            "coursePrerequisites":"Elementory knowledge of computer",
+ "typicalAgeRange": "10-12",
+ "hasCourseInstance": [
+    {
+      "@type": "CourseInstance",
+      "courseMode": [
+        "OnSite",
+        "Online",
+        "Weekdays",
+        "Weekends"
+      ],
+      "offers": [
+       {
+        "@type": "Offer",
+        "price": "395",
+        "priceCurrency": "GBP"
+      },
+       {
+        "@type": "Offer",
+        "price": "300",
+        "priceCurrency": "GBP"
+     }
+    ],
+         
+
+ "educationalAlignment": 
+    {
+      "@type": "AlignmentObject",
+      "alignmentType": "educationalSubject",
+      "educationalFramework": " Curriculum for Excellence",
+      "targetName": "Social studies: people past events and societies",
+      "targetUrl": "http://example.org/CFE/subjects/3362"
+    }
+}
+	
