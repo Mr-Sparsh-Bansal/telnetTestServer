@@ -1,61 +1,63 @@
 import asyncio
 import websockets
+import json
 
+# Store user credentials in Python code
 users = {
-    "Sparsh": "1234",
-    "Srishti": "4321"
+    "user1": "password1",
+    "user2": "password2"
 }
 
 clients = {}
 
-async def handle_client(websocket, path):
-    username = None
+async def authenticate(websocket):
+    # Request user credentials
+    await websocket.send("Enter your User ID: ")
+    user_id = await websocket.recv()
+
+    await websocket.send("Enter your Password: ")
+    password = await websocket.recv()
+
+    if users.get(user_id) == password:
+        await websocket.send(f"Authentication successful. Welcome to the chat room, {user_id}!\n")
+        clients[user_id] = websocket
+        return user_id
+    else:
+        await websocket.send("Authentication failed. Closing connection.\n")
+        await websocket.close()
+        return None
+
+async def chat(websocket, user_id):
     try:
-        await websocket.send("Username: ")
-        username = await websocket.recv()
-
-        await websocket.send("Password: ")
-        password = await websocket.recv()
-
-        if username not in users or users[username] != password:
-            await websocket.send("Invalid credentials. Connection closed.")
-            return
-
-        clients[username] = websocket
-        await broadcast(f"{username} has joined the chat!", username)
-
-        await websocket.send("Welcome to the chat! Type your message and press Enter.")
-
-        async for message in websocket:
-            await broadcast(f"[{username}]: {message}", username)
-
+        while True:
+            message = await websocket.recv()
+            if message.lower() == 'exit':
+                await websocket.send(f"You have left the chat room, {user_id}.\n")
+                break
+            # Broadcast message to all connected clients
+            await broadcast(f"{user_id}: {message}")
     except websockets.exceptions.ConnectionClosed:
         pass
-
     finally:
-        if username and username in clients:
-            del clients[username]
-        await broadcast(f"{username} has left the chat.", username)
+        # Remove from clients
+        del clients[user_id]
+        await broadcast(f"{user_id} has left the chat room.\n")
 
-async def broadcast(message, sender=None):
-    disconnected_clients = []
-    for user, ws in clients.items():
-        if user != sender:
-            try:
-                await ws.send(message)
-            except websockets.exceptions.ConnectionClosed:
-                disconnected_clients.append(user)
+async def broadcast(message):
+    for client in clients.values():
+        try:
+            await client.send(message)
+        except websockets.exceptions.ConnectionClosed:
+            pass
 
-    for user in disconnected_clients:
-        del clients[user]
+async def main(websocket, path):
+    user_id = await authenticate(websocket)
+    if user_id:
+        await chat(websocket, user_id)
 
-async def main():
-    server = await websockets.serve(handle_client, "0.0.0.0", 8765)
-    await server.wait_closed()
+start_server = websockets.serve(main, "0.0.0.0", 8765)
 
-# ✅ FIX: Properly create and set a new event loop
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
-loop.run_until_complete(main())
-loop.run_forever()
+# Run the server
+asyncio.get_event_loop().run_until_complete(start_server)
+print("Server started on ws://0.0.0.0:8765")
+asyncio.get_event_loop().run_forever()
