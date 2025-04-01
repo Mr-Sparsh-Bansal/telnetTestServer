@@ -55,9 +55,12 @@ async def main(websocket, path):
     if user_id:
         await chat(websocket, user_id)
 
-start_server = websockets.serve(main, "0.0.0.0", 8765)
+# Run the WebSocket server
+async def start_server():
+    server = await websockets.serve(main, "0.0.0.0", 8765)
+    print("Server started on ws://0.0.0.0:8765")
+    await server.wait_closed()
 
-# Run the server
-asyncio.get_event_loop().run_until_complete(start_server)
-print("Server started on ws://0.0.0.0:8765")
-asyncio.get_event_loop().run_forever()
+# Start the event loop
+if __name__ == "__main__":
+    asyncio.run(start_server())
