@@ -53,6 +53,9 @@ async def main():
     server = await websockets.serve(handle_client, "0.0.0.0", 8765)
     await server.wait_closed()
 
-loop = asyncio.get_event_loop()
+# ✅ FIX: Properly create and set a new event loop
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 loop.run_until_complete(main())
 loop.run_forever()
